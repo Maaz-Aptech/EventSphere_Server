@@ -41,7 +41,7 @@ app.use('/api/registrations', registrationRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use("/uploads", express.static("uploads"));
 
-app.get('/', (req, res) => res.send('API is running...'));
+app.get('/', (req, res) => res.send('Server is running...'));
 
 // error handlers (optional)
 app.use(notFound);
