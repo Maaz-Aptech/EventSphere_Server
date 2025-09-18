@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import registrationRoutes from './routes/registrationRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
+
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import seedAdmin from './config/seedAdmin.js';
 
@@ -19,43 +20,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ MongoDB connection (cached for serverless)
-let isConnected = false;
-async function connectDB() {
-  if (isConnected) return;
+// connect db
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  'mongodb+srv://smmaazaptechmlr_db_user:EventSphereTechwiz6@eventsphere.ykidunn.mongodb.net/EventSphere';
 
-  try {
-    const db = await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    isConnected = db.connections[0].readyState;
-    console.log("✅ MongoDB Connected");
-
-    // ✅ Seed default admin if none exists
+mongoose
+  .connect(MONGO_URI, {})
+  .then(async () => {
+    console.log('✅ MongoDB Connected');
+    // Seed default admin
     await seedAdmin();
-  } catch (err) {
-    console.error("❌ MongoDB connection error:", err.message);
-    throw err;
-  }
-}
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB connection error:', err.message);
+  });
 
 // routes
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
 app.use('/api/feedback', feedbackRoutes);
-app.use("/uploads", express.static("uploads"));
+app.use('/uploads', express.static('uploads'));
 
-app.get('/', async (req, res) => {
-  await connectDB();
-  res.send('Server is running with MongoDB Atlas...');
-});
+app.get('/', (req, res) => res.send('Server is running...'));
 
 // error handlers
 app.use(notFound);
 app.use(errorHandler);
 
-// ❌ DO NOT use app.listen() on Vercel
-// ✅ Instead, export the app
+// ✅ IMPORTANT: No app.listen() in Vercel
 export default app;
